@@ -1,0 +1,25 @@
+# --- 핵심 (가드레일 + 레드팀 + 블루팀 실행에 필수) ---
+openai
+python-dotenv
+tqdm
+transformers          # Layer2 NER(spaCy 대체 이전 실험용) 및 baseline 비교 스크립트에서 사용
+pandas
+
+# --- 데이터셋 생성 ---
+faker[ko]
+rrn                   # 한국 주민등록번호 형식 생성/검증 (data/generate_dataset_v3_lib.py)
+pyrit                 # Microsoft PyRIT, 공격 프롬프트 생성에 활용 (data/generate_dataset_v3_lib.py)
+
+# --- 다중 모델 비교 실험 (redteam/multi_model_redteam.py) ---
+anthropic             # Claude 방어자 모델
+ollama                # Llama-3 로컬 실행 (Ollama 서버 필요, 별도 설치: https://ollama.com)
+huggingface_hub       # (선택) HF Inference API 경로용
+
+# --- baseline 비교 실험 (experiments/baseline_*.py) ---
+presidio-analyzer
+presidio-anonymizer
+llm-guard              # torch 기반, 설치 용량 큼(1GB+) — 로컬 실행 권장
+torch
+
+# --- 발표 라이브 데모 (streamlit_demo.py) ---
+streamlit
