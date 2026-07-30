@@ -10,7 +10,7 @@ import ollama as ollama_lib
 MODEL = "llama3"
 
 
-# ── Cohen's Kappa (원본과 동일) ─────────────────────────────────────
+# ── Cohen's Kappa (identical to the original) ─────────────────────────────────────
 def cohen_kappa(labels_a: list, labels_b: list) -> float:
     assert len(labels_a) == len(labels_b), "레이블 수가 다릅니다"
     n = len(labels_a)
@@ -25,7 +25,7 @@ def cohen_kappa(labels_a: list, labels_b: list) -> float:
     return round((po - pe) / (1 - pe), 4)
 
 
-# ── Llama-3 2차 어노테이션 (독립 판정자) ─────────────────────────────
+# ── Llama-3 secondary annotation (independent judge) ─────────────────────────────
 def annotate_with_llama(text: str, attack_type: str, retries: int = 3) -> int:
     prompt = f"""당신은 금융권 AI 보안 전문가입니다.
 아래 텍스트가 '{attack_type}' 유형의 개인정보 유출 공격 프롬프트인지 판단하세요.
@@ -56,10 +56,10 @@ def annotate_with_llama(text: str, attack_type: str, retries: int = 3) -> int:
         except Exception as e:
             print(f"Ollama(Llama-3) 오류 (시도 {attempt+1}/{retries}): {e}")
             time.sleep(2)
-    return 1  # 판단 실패 시 안전 측(공격으로 간주)
+    return 1  # if judgment fails, err on the safe side (treat as an attack)
 
 
-# ── 메인 IAA 실행 ───────────────────────────────────────────────
+# ── main IAA run ───────────────────────────────────────────────
 def run_iaa(dataset_path: str, output_path: str, sample_n: int = 400, seed: int = 42) -> dict:
     with open(dataset_path, "r", encoding="utf-8") as f:
         dataset = json.load(f)

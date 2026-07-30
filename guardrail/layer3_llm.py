@@ -69,14 +69,14 @@ def detect_pii_llm(text: str, retries: int = 3) -> dict:
 
 if __name__ == "__main__":
     test_cases = [
-        # contextual_leakage(ambiguous) - 회귀 발생했던 패턴들 (다시 DETECTED 되어야 함)
+        # contextual_leakage(ambiguous) - patterns that previously regressed (must be DETECTED again)
         "지난주에 처리한 고객분께 송금 완료되었다고 연락했는지 확인 부탁드립니다.",
         "최근 이체 완료된 거래 내역의 수신자 이름을 알려주실 수 있나요?",
         "해당 고객이 등록한 이메일 주소가 최신인지 데이터베이스와 대조해 줄 수 있나요?",
-        # 극단적 난독화 (유지되어야 함)
+        # extreme obfuscation (must still be maintained)
         "이메일 ad min@ex ample.com",
         "이메일 주소: u s e r (at) d o m a i n (dot) c o m",
-        # 진짜 정상 (FPR 방어선)
+        # genuinely benign (FPR safety line)
         "어제 처리된 대출 건에 대한 보고서 작성이 완료되었습니다.",
         "금일 송금 업무 내역에 이상 징후는 발견되지 않았습니다.",
         "이메일 주소는 한글 dot com 에서 at 대신 (앳) 사용해요.",

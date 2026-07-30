@@ -25,14 +25,15 @@ N_EXAMPLES = 5
 
 
 def sync_layer3_llm_source(rendered_prompt: str, layer3_llm_path: Path):
-    """[중요] guardrail/guardrail.py와 redteam/redteam.py는 rule_store.json을
-    런타임에 렌더링해서 쓰지 않고, layer3_llm.py에 하드코딩된 SYSTEM_PROMPT
-    상수를 그대로 import해서 쓴다(auto_tuning_v4.py의 apply_rules_to_layer3()만
-    실행 중에 메모리상으로 갈아끼운다 - 파일 자체는 안 건드림). 그래서
-    guardrail/layer3_rules_v4.json에 safe_exceptions를 추가하는 것만으로는
-    실제 redteam.py 재검증에 반영되지 않는다 - 렌더링된 최종 프롬프트를
-    layer3_llm.py의 SYSTEM_PROMPT 상수에도 그대로 동기화해야 한다(9항목
-    체크리스트가 처음 이 파일에 반영됐을 때와 동일한 방식)."""
+    """[Important] guardrail/guardrail.py and redteam/redteam.py don't render
+    rule_store.json at runtime - they import the SYSTEM_PROMPT constant
+    hardcoded in layer3_llm.py as-is (only auto_tuning_v4.py's
+    apply_rules_to_layer3() swaps it in memory at runtime - the file itself is
+    left untouched). So just adding safe_exceptions to
+    guardrail/layer3_rules_v4.json isn't reflected in actual redteam.py
+    re-verification - the final rendered prompt must also be synced into
+    layer3_llm.py's SYSTEM_PROMPT constant (the same way the 9-item checklist
+    was first applied to this file)."""
     src = layer3_llm_path.read_text(encoding="utf-8")
     pattern = re.compile(r'SYSTEM_PROMPT = """.*?"""', re.S)
     if not pattern.search(src):
@@ -131,7 +132,7 @@ def main():
 
     store = rule_store.load_rules(rules_path)
 
-    # 저장 전 백업 (안전장치) - JSON과 layer3_llm.py 둘 다
+    # Back up before saving (safety net) - both the JSON and layer3_llm.py
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_json = rules_path.with_suffix(f".backup_{ts}.json")
     shutil.copy(rules_path, backup_json)
@@ -144,8 +145,8 @@ def main():
     rule_store.save_rules(store, rules_path)
     print(f"저장 완료 (safe_exceptions id={new_id}): {rules_path}")
 
-    # [중요] guardrail.py/redteam.py가 실제로 쓰는 layer3_llm.py의 SYSTEM_PROMPT
-    # 상수도 함께 동기화해야 재검증에 반영된다 (위 sync_layer3_llm_source 참고).
+    # [Important] The SYSTEM_PROMPT constant in layer3_llm.py, which guardrail.py/redteam.py
+    # actually use, must also be synced for re-verification to reflect it (see sync_layer3_llm_source above).
     rendered = rule_store.render_system_prompt(store)
     sync_layer3_llm_source(rendered, layer3_llm_path)
     print(f"layer3_llm.py의 SYSTEM_PROMPT 동기화 완료: {layer3_llm_path}")

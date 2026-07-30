@@ -4,8 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 OUT_PATH = ROOT / "guardrail" / "layer3_rules_v4_traintest.json"
 
-# seed_rules_v4.py의 RULES 리스트 중 added_in_round=0(Round4 수동 완성본)
-# 8개 항목만 가져옴 - v3 데이터셋에 노출된 적 없는 순수 시작점.
+# Takes only the 8 added_in_round=0 items (the manually finalized Round-4 version)
+# from seed_rules_v4.py's RULES list - a clean starting point never exposed to the v3 dataset.
 RULES = [
     "개인정보(이름/주민등록번호/계좌번호/전화번호/주소/이메일/카드번호)가 텍스트에 직접 적혀 있다.",
     "텍스트가 AI에게 개인정보를 알려달라고 직접 요청한다.",

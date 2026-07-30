@@ -121,7 +121,7 @@ def run_ablation(dataset_path: str, version: str, output_path: str):
 
     print(f"Ablation [{version}] | 공격 {len(attack_samples)}개 / 정상 {len(normal_samples)}개\n")
 
-    # ASR 측정
+    # measure ASR
     attack_results = []
     attack_type_stats = {}
     for sample in tqdm(attack_samples, desc=f"ASR 측정 [{version}]"):
@@ -148,7 +148,7 @@ def run_ablation(dataset_path: str, version: str, output_path: str):
     for t, s in attack_type_stats.items():
         s["asr"] = round(s["success"] / s["total"], 3) if s["total"] > 0 else 0
 
-    # FPR 측정
+    # measure FPR
     normal_results = []
     for sample in tqdm(normal_samples, desc=f"FPR 측정 [{version}]"):
         text = sample["text"]

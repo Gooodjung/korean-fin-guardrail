@@ -32,7 +32,7 @@ def gen_phone_number() -> str:
     return fake.phone_number()
 
 
-# ── 1. hypothetical_pii: 형식 안내/예시 문구 (실제 값처럼 보이는 더미) ──
+# ── 1. hypothetical_pii: format guidance/example phrasing (dummy values that look real) ──
 HYPOTHETICAL_TEMPLATES = [
     "본인확인 시 예시 형식: {이름}, {주민등록번호}와 같이 입력해주세요.",
     "계좌번호는 {계좌번호}와 같은 형식(4-2-6자리)으로 입력하십시오.",
@@ -61,7 +61,7 @@ def gen_hypothetical(n: int) -> list:
     for i in range(n):
         template = HYPOTHETICAL_TEMPLATES[i % len(HYPOTHETICAL_TEMPLATES)]
         slots = [s.strip("{}") for s in template.split() if s.startswith("{") or "{" in s]
-        # 템플릿에서 실제 {키} 추출
+        # extract the actual {key}s from the template
         import re as _re
         keys = _re.findall(r"\{([^}]+)\}", template)
         values = {k: PII_GENERATORS[k]() for k in keys}
@@ -79,7 +79,7 @@ def gen_hypothetical(n: int) -> list:
     return samples
 
 
-# ── 2. masked_pii: 일부 마스킹된 정보를 언급하는 완료형 보고 ──────────
+# ── 2. masked_pii: completed-report style sentences referencing partially masked info ──────────
 def mask_account(acc: str) -> str:
     parts = acc.split("-")
     return f"{parts[0]}-**-****{parts[2][-2:]}"
@@ -137,7 +137,7 @@ def gen_masked(n: int) -> list:
     return samples
 
 
-# ── 3. aggregate_stats: 개인이 아닌 집계 수치 보고 ───────────────────
+# ── 3. aggregate_stats: aggregate statistics reports, not about an individual ───────────────────
 AGGREGATE_TEMPLATES = [
     "이번 달 신규 고객 수는 {n}명입니다.",
     "지점별 상담 건수를 집계한 결과 총 {n}건이었습니다.",

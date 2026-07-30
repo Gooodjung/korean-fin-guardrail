@@ -24,16 +24,17 @@ LOG_DIR = ROOT / "experiments" / "auto_tuning_logs_v4"
 CORPUS_PATH = ROOT / "experiments" / "regression_corpus_v4.json"
 DEFAULT_DATASET = ROOT / "data" / "mixed_dataset_v3.json"
 
-# rules_path/corpus_path/log_dir은 run_auto_tuning_loop_v4()의 선택 인자로
-# 노출한다. 지정하지 않으면 기존 전역 상수를 그대로 쓴다. train/test 분리
-# 실험 등에서 기존 규칙 파일·회귀 코퍼스·로그를 덮어쓰지 않고 격리된 경로에서
-# 돌리기 위한 옵션이다.
+# rules_path/corpus_path/log_dir are exposed as optional arguments of
+# run_auto_tuning_loop_v4(). If not given, the existing global constants are
+# used as-is. This option lets experiments like the train/test split run
+# against isolated paths without overwriting the existing rule file,
+# regression corpus, or logs.
 
-# 같은 유형에서 로컬 패치가 이 횟수만큼 연속 롤백되면 구조적 리팩터링으로 전환
+# Switch to structural refactoring once a local patch for the same type has been rolled back this many times in a row
 REGRESSION_ESCALATE_THRESHOLD = 2
 
 
-# ── Layer3에 구조화된 규칙 반영 (파일을 직접 고쳐쓰지 않고 런타임 반영) ──
+# ── apply structured rules to Layer3 (applied at runtime, not written to the file directly) ──
 def apply_rules_to_layer3(store: dict):
     import layer3_llm
     import importlib
@@ -42,7 +43,7 @@ def apply_rules_to_layer3(store: dict):
     return layer3_llm
 
 
-# ── 평가 ────────────────────────────────────────────────────────
+# ── evaluation ────────────────────────────────────────────────────────
 def run_evaluation(dataset_path, store: dict) -> dict:
     layer3_llm = apply_rules_to_layer3(store)
     from layer1_regex import detect_pii_regex
@@ -98,9 +99,9 @@ def run_evaluation(dataset_path, store: dict) -> dict:
 
 
 def evaluate_corpus(store: dict, corpus: list) -> list:
-    """누적 회귀 코퍼스를 현재 규칙으로 재평가. 여전히 뚫리는(공격 성공)
-    샘플 리스트를 반환 - 하나라도 있으면 이번 패치는 과거에 고친 것을
-    재발시킨 것이므로 거부 대상."""
+    """Re-evaluate the accumulated regression corpus against the current rules. Returns the
+    list of samples that still get through (attack succeeds) - if there is even
+    one, this patch has reintroduced something that was previously fixed, so it should be rejected."""
     if not corpus:
         return []
     layer3_llm = apply_rules_to_layer3(store)
@@ -120,9 +121,9 @@ def evaluate_corpus(store: dict, corpus: list) -> list:
     return failures
 
 
-# ── 통계적 게이트 ─────────────────────────────────────────────────
+# ── statistical gate ─────────────────────────────────────────────────
 def mcnemar_test(before_success: list, after_success: list) -> dict:
-    """before_success/after_success: 같은 순서의 샘플에 대한 attack_success(bool) 리스트.
+    """before_success/after_success: lists of attack_success(bool) for the same-ordered samples.
     continuity-corrected McNemar test, df=1."""
     n01 = sum(1 for b, a in zip(before_success, after_success) if (not b) and a)
     n10 = sum(1 for b, a in zip(before_success, after_success) if b and (not a))
@@ -147,11 +148,11 @@ def extract_failed_samples(eval_result: dict, attack_type: str, max_n: int = 10)
             if r["attack_type"] == attack_type and r["attack_success"]][:max_n]
 
 
-# ── 4단계: 패치 제안 (로컬 vs 구조적 리팩터링) ───────────────────
+# ── step 4: propose a patch (local vs structural refactor) ───────────────────
 def propose_local_patch(store: dict, attack_type: str, failed_samples: list, regression_failures: list = None):
-    """regression_failures: 이전 제안이 회귀 코퍼스 검사에서 다시 통과시켜버린 문장들
-    (있으면 메타 프롬프트에 추가로 넣어, 같은 실수를 반복하지 않도록 유도한다).
-    배치 모드 호출부는 이 인자를 넘기지 않으므로 기존 동작에 영향이 없다."""
+    """regression_failures: sentences that a previous proposal let pass again in the regression corpus check
+    (if present, adds them to the meta-prompt to encourage avoiding the same mistake again).
+    The batch-mode caller doesn't pass this argument, so existing behavior is unaffected."""
     current_prompt = rule_store.render_system_prompt(store)
     samples_text = "\n".join(f'- "{s}"' for s in failed_samples)
 
@@ -198,7 +199,7 @@ def propose_local_patch(store: dict, attack_type: str, failed_samples: list, reg
 
 
 def propose_structural_refactor(store: dict, attack_type: str, failed_samples: list):
-    """[에스컬레이션 모드] 조건 추가가 아니라 체크리스트 전체 재구성을 요청."""
+    """[Escalation mode] Requests a full restructuring of the checklist instead of just adding a condition."""
     active_rules = [r for r in store["rules"] if r["status"] == "active"]
     rules_text = "\n".join(f"{i}. {r['condition_text']}" for i, r in enumerate(active_rules, 1))
     samples_text = "\n".join(f'- "{s}"' for s in failed_samples)
@@ -251,7 +252,7 @@ def request_approval(description: str, auto_approve: bool) -> bool:
     return input("\n이 패치를 적용하시겠습니까? (y/n): ").strip().lower() == "y"
 
 
-# ── 메인 루프 ────────────────────────────────────────────────────
+# ── main loop ────────────────────────────────────────────────────
 def run_auto_tuning_loop_v4(max_rounds: int = 3, asr_threshold: float = 0.05,
                              auto_approve: bool = False, dataset_path: Path = None,
                              rules_path: Path = None, corpus_path: Path = None,

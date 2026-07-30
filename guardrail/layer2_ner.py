@@ -18,13 +18,13 @@ def _get_pipeline():
     return _ner_pipeline
 
 
-# 탐지 대상으로 간주할 개체명 라벨 (모델 라벨 체계에 맞춰 조정 필요)
+# Entity labels considered as detection targets (adjust to match the model's label scheme)
 PII_RELATED_LABELS = {"PS", "PER", "LC", "LOC", "OG", "ORG"}
 
 
 def detect_pii_ner(text: str) -> dict:
     """
-    NER 모델로 텍스트에서 사람 이름/지명 등 개체명을 탐지
+    Detect entities such as person names/place names in the text using the NER model
 
     Returns:
         {
@@ -38,7 +38,7 @@ def detect_pii_ner(text: str) -> dict:
     found = []
     for ent in entities:
         label = ent["entity_group"].upper()
-        # 라벨 체계가 모델별로 다를 수 있어 포함 여부로 판단
+        # Judged by substring match since the label scheme can vary by model
         if any(key in label for key in PII_RELATED_LABELS):
             found.append({
                 "type": label,

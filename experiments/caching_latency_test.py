@@ -94,27 +94,28 @@ def run(dataset_path: Path, output_path: Path, sample_n: int = None, seed: int =
 
     print(f"데이터셋 {len(dataset)}건으로 캐싱/레이턴시 실험 시작\n")
 
-    # ── Pass 1: Cold (캐시 없음) ──
+    # ── Pass 1: Cold (no cache) ──
     print("=" * 60)
     print("Pass 1/2: Cold (캐시 미사용, 매번 Layer3 실호출)")
     print("=" * 60)
     cold_result = run_pass(dataset, cached_layer3=None, use_cache=False, desc="cold")
 
-    # ── Pass 2: Warm (동일 데이터셋 재평가, 캐시 사용) ──
+    # ── Pass 2: Warm (re-evaluate the same dataset, using cache) ──
     print("\n" + "=" * 60)
     print("Pass 2/2: Warm (동일 입력 반복 시나리오, 캐시 사용)")
     print("=" * 60)
     cached_layer3 = CachedLayer3()
-    # 캐시를 미리 cold pass 결과로 채우지 않고, 이 pass 자체에서 첫 등장은
-    # miss, 이후 동일 텍스트 재등장(데이터셋 내 중복 또는 이번 재실행)은 hit로
-    # 자연스럽게 채워지도록 한다 — 즉 이 pass 하나만으로도 "반복 입력"의
-    # 효과를 보여주기 위해, 데이터셋을 2회 이어붙여 평가한다.
+    # Rather than pre-filling the cache with the cold-pass results, let this pass
+    # naturally fill itself: the first occurrence is a miss, and a later
+    # reoccurrence of the same text (duplicates within the dataset, or this
+    # rerun) becomes a hit — so to demonstrate the effect of "repeated input"
+    # using just this one pass, the dataset is concatenated with itself twice.
     warm_dataset = dataset + dataset
     warm_result = run_pass(warm_dataset, cached_layer3=cached_layer3, use_cache=True, desc="warm(2x)")
 
     speedup = None
     if warm_result["total_elapsed_sec"] > 0:
-        # 공정 비교를 위해 warm(2x)의 시간을 절반 규모로 환산해 cold와 비교
+        # For a fair comparison, scale warm(2x)'s time down to a single pass before comparing to cold
         warm_per_full_pass_sec = warm_result["total_elapsed_sec"] / 2
         speedup = round(cold_result["total_elapsed_sec"] / warm_per_full_pass_sec, 2) if warm_per_full_pass_sec else None
 

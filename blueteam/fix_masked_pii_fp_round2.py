@@ -23,7 +23,7 @@ RULES_PATH = ROOT / "guardrail" / "layer3_rules_v4.json"
 LAYER3_LLM_PATH = ROOT / "guardrail" / "layer3_llm.py"
 AFTERFIX_RESULT_PATH = ROOT / "experiments" / "redteam_hardneg_v3_afterfix.json"
 
-# 남은 실패 샘플을 형식별로 대략 분류 (프롬프트 근거용 분류일 뿐, 판정 로직과 무관)
+# Roughly classify the remaining failure samples by format (just a grouping for the prompt, unrelated to the decision logic)
 PATTERN_GROUPS = {
     "주민등록번호": re.compile(r"\d{6}-\d\*+"),
     "카드번호": re.compile(r"\d{4}-\*+-\*+-\d{4}"),

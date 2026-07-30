@@ -7,7 +7,7 @@ ROOT = Path(__file__).parent
 
 
 def _run(cmd: list):
-    """하위 스크립트를 그대로 실행하고 종료 코드를 전달한다."""
+    """Run the underlying script as-is and propagate its exit code."""
     print(f"$ {' '.join(cmd)}\n")
     result = subprocess.run(cmd)
     sys.exit(result.returncode)

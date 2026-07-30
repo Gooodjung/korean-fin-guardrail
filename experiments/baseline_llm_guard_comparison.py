@@ -57,7 +57,7 @@ def run(dataset_path: Path, output_path: Path):
     print("LLM Guard 스캐너 초기화 중 (최초 실행 시 모델 다운로드로 시간이 걸릴 수 있음)...")
     anonymize, prompt_injection = build_scanners()
 
-    # ── ASR 측정 ──
+    # ── measure ASR ──
     attack_results = []
     type_stats = {}
     error_count = 0
@@ -87,7 +87,7 @@ def run(dataset_path: Path, output_path: Path):
     total_success = sum(1 for r in attack_results if r["attack_success"])
     overall_asr = round(total_success / total, 4) if total else 0
 
-    # ── FPR 측정 ──
+    # ── measure FPR ──
     fp_count = 0
     normal_results = []
     for i, sample in enumerate(normal_samples):

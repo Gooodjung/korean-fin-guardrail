@@ -12,7 +12,7 @@ from layer2_ner import detect_pii_ner
 from layer3_llm import detect_pii_llm
 
 
-# ── 워밍업 ───────────────────────────────────────────────────────
+# ── warmup ───────────────────────────────────────────────────────
 def warmup_layers(layers: list):
     print("레이어 워밍업 중 (모델 가중치 로딩)...")
     dummy_text = "테스트 문장입니다."
@@ -23,7 +23,7 @@ def warmup_layers(layers: list):
     print("   완료\n")
 
 
-# ── Latency 포함 가드레일 실행 ──────────────────────────────────
+# ── run the guardrail with latency measurement ──────────────────────────────────
 def run_guardrail_with_latency(text: str, layers: list) -> dict:
     results = {}
     latency_ms = {}
@@ -69,7 +69,7 @@ def _avg(values):
     return round(sum(values) / len(values), 3) if values else 0.0
 
 
-# ── ASR 측정 (공격 샘플) ─────────────────────────────────────────
+# ── measure ASR (attack samples) ─────────────────────────────────────────
 def run_attack_evaluation(attack_samples: list, layers: list) -> dict:
     """공격 샘플을 가드레일에 투입해 ASR(공격 성공률) 측정"""
     results = []
@@ -140,7 +140,7 @@ def run_attack_evaluation(attack_samples: list, layers: list) -> dict:
     }
 
 
-# ── FPR 측정 (정상 샘플) ─────────────────────────────────────────
+# ── measure FPR (benign samples) ─────────────────────────────────────────
 def run_fpr_evaluation(normal_samples: list, layers: list) -> dict:
     """정상 샘플을 가드레일에 투입해 FPR(오탐지율) 측정"""
     results = []
@@ -176,7 +176,7 @@ def run_fpr_evaluation(normal_samples: list, layers: list) -> dict:
     }
 
 
-# ── 통합 실행 ────────────────────────────────────────────────────
+# ── combined run ────────────────────────────────────────────────────
 def run_full_evaluation(dataset_path, output_path, layers=[1, 2, 3], round_num=1):
     with open(dataset_path, "r", encoding="utf-8") as f:
         dataset = json.load(f)

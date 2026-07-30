@@ -22,8 +22,8 @@ def split(dataset: list, test_ratio: float, seed: int):
     split_report = {}
     dup_groups_moved = 0
     for attack_type, samples in sorted(by_type.items()):
-        # 텍스트 단위로 그룹핑 (완전 동일 문장이 여러 레코드로 중복 존재하는
-        # 경우, 그룹 전체가 항상 같은 쪽에만 속하도록 하기 위함)
+        # Group by text (so that when the exact same sentence exists as
+        # duplicate records, the whole group always ends up on the same side)
         groups = defaultdict(list)
         for s in samples:
             groups[s["text"]].append(s)
@@ -56,7 +56,7 @@ def main():
 
     train, test, split_report = split(dataset, TEST_RATIO, SEED)
 
-    # 무결성 체크: 겹치는 샘플이 없어야 하고, 합쳐서 원본과 개수가 같아야 함
+    # Integrity check: there should be no overlapping samples, and the combined count should match the original
     train_texts = {s["text"] for s in train}
     test_texts = {s["text"] for s in test}
     overlap = train_texts & test_texts

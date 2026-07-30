@@ -21,16 +21,16 @@ def analyze_attack_funnel(asr_report: dict) -> dict:
         stat["total"] += 1
         overall["total"] += 1
 
-        # 캐스케이드 구조: layer1 -> layer2 -> layer3 순으로 도달.
-        # blocked_by가 layerN이면 layer1..layerN까지는 "도달"했고, layerN이 "차단".
-        # blocked_by가 None(공격 성공)이면 존재하는 모든 레이어에 도달했지만
-        # 아무도 못 막은 것.
+        # Cascade structure: reached in order layer1 -> layer2 -> layer3.
+        # If blocked_by is layerN, layer1..layerN were all "reached" and layerN "blocked" it.
+        # If blocked_by is None (attack succeeded), every existing layer was
+        # reached but none of them blocked it.
         layer_order = ["layer1", "layer2", "layer3"]
         stopped_at = layer_order.index(blocked_by) if blocked_by in layer_order else None
 
         reach_upto = stopped_at if stopped_at is not None else len(layer_order) - 1
         for i, lname in enumerate(layer_order):
-            # latency_ms에 값이 있으면 그 레이어가 실제로 실행(=도달)된 것
+            # If latency_ms has a value, that layer was actually run (= reached)
             if lname in r.get("latency_ms", {}):
                 stat["reached"][lname] += 1
                 overall["reached"][lname] += 1

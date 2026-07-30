@@ -9,29 +9,29 @@ _REPLACE_RULES = [
     (re.compile(r"\bdot\b", re.IGNORECASE), "."),
 ]
 
-# @ 또는 .을 포함하면서 공백/줄바꿈이 섞인 연속 구간을 찾는 패턴
-# (영문/숫자/한글 + 공백 + @ 또는 . + 공백 + 영문/숫자/한글 ... 형태)
+# Pattern matching a contiguous run containing @ or . mixed with spaces/newlines
+# (in the form: alphanumeric/Korean + space + @ or . + space + alphanumeric/Korean ...)
 _SPACED_EMAIL_BLOCK = re.compile(
     r"[A-Za-z0-9가-힣]+(?:[\s]*[@.][\s]*[A-Za-z0-9가-힣]+){2,}"
 )
 
 
 def _compress_block(match: re.Match) -> str:
-    """매칭된 블록 내부의 모든 공백/줄바꿈 제거"""
+    """Remove all whitespace/newlines within the matched block"""
     return re.sub(r"\s+", "", match.group())
 
 
 def _normalize(text: str) -> str:
     normalized = text
 
-    # 1-pass: 단어/기호 치환
+    # 1-pass: word/symbol substitution
     for pattern, replacement in _REPLACE_RULES:
         normalized = pattern.sub(replacement, normalized)
 
-    # 2-pass: 줄바꿈 제거
+    # 2-pass: remove newlines
     normalized = re.sub(r"[\n\r]+", " ", normalized)
 
-    # 3-pass: @ 또는 . 이 포함된 공백 섞인 블록을 통째로 압축
+    # 3-pass: compress whole blocks containing @ or . that are mixed with spaces
     normalized = _SPACED_EMAIL_BLOCK.sub(_compress_block, normalized)
 
     return normalized

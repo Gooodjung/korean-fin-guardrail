@@ -21,7 +21,7 @@ def main():
         print("   (contextual_leakage/roleplay_jailbreak/multiturn_accumulation).")
         print(f"   지금은 lib 파트({len(lib_part)}개)만 있는 상태로 부분 병합만 진행합니다.\n")
 
-    # 정상 샘플은 기존 것 재사용 (PII 생성 문제와 무관한 카테고리라 재작업 대상 아님)
+    # Reuse the existing benign samples (unrelated to the PII generation issue, so not something that needs redoing)
     mixed_original = load_json(ROOT / "mixed_dataset.json")
     normal_samples = [s for s in mixed_original if s.get("label", 1) == 0]
     if not normal_samples:

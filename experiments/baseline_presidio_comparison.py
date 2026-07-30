@@ -10,7 +10,7 @@ def build_analyzer(korean_nlp: bool):
     from presidio_analyzer.nlp_engine import NlpEngineProvider
 
     if korean_nlp:
-        # 다국어 모델로 교체 시도 (완전한 한국어 NER은 아님 - 한계로 명시할 것)
+        # Attempt to swap in a multilingual model (not full Korean NER - state this as a limitation)
         config = {
             "nlp_engine_name": "spacy",
             "models": [{"lang_code": "ko", "model_name": "xx_ent_wiki_sm"}],
@@ -19,18 +19,19 @@ def build_analyzer(korean_nlp: bool):
         nlp_engine = provider.create_engine()
         return AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["ko"])
     else:
-        return AnalyzerEngine()  # 기본 영어(en) 파이프라인
+        return AnalyzerEngine()  # default English (en) pipeline
 
 
 def detect_with_presidio(analyzer, text: str, language: str) -> dict:
-    """Presidio 분석 결과를 우리 가드레일과 동일한 {"detected": bool} 포맷으로 변환.
-    엔티티가 1개라도 잡히면 '탐지(차단)'으로 간주 - 우리 가드레일의
-    detect_pii_* 함수들과 동일한 판정 기준."""
+    """Convert Presidio's analysis result into the same {"detected": bool} format as our guardrail.
+    If even one entity is caught, treat it as 'detected (blocked)' - the same
+    decision criteria as our guardrail's detect_pii_* functions."""
     try:
         results = analyzer.analyze(text=text, language=language)
     except Exception as e:
-        # 언어 미지원 등으로 실패하면 "탐지 실패"로 처리 (보수적으로 미탐 처리하지 않고
-        # 명시적으로 에러 표시 - 통계에서 구분 가능하도록)
+        # If it fails (e.g. unsupported language), treat it as "detection failure"
+        # (rather than conservatively treating it as a miss, mark it explicitly
+        # as an error so it can be distinguished in the stats)
         return {"detected": False, "entities": [], "error": str(e)}
     return {
         "detected": len(results) > 0,
@@ -49,7 +50,7 @@ def run(dataset_path: Path, korean_nlp: bool, output_path: Path):
     print(f"Presidio 분석 엔진 초기화 중 (korean_nlp={korean_nlp})...")
     analyzer = build_analyzer(korean_nlp)
 
-    # ── ASR 측정 ──
+    # ── measure ASR ──
     attack_results = []
     type_stats = {}
     error_count = 0
@@ -77,7 +78,7 @@ def run(dataset_path: Path, korean_nlp: bool, output_path: Path):
     total_success = sum(1 for r in attack_results if r["attack_success"])
     overall_asr = round(total_success / total, 4) if total else 0
 
-    # ── FPR 측정 ──
+    # ── measure FPR ──
     fp_count = 0
     normal_results = []
     for i, sample in enumerate(normal_samples):

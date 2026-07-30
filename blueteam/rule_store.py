@@ -30,8 +30,8 @@ def save_rules(store: dict, path):
 
 
 def strip_leading_number(text: str) -> str:
-    """LLM이 제안한 패치 텍스트 앞에 '9. ' 같은 번호를 스스로 붙여올 수 있으므로,
-    저장/렌더링 전에 항상 제거한다."""
+    """The LLM-proposed patch text may come with a self-added number like '9. ' in front,
+    so always strip it before saving/rendering."""
     return re.sub(r"^\s*\d+[.)]\s*", "", text.strip()).strip()
 
 
@@ -65,16 +65,16 @@ def add_rule(store: dict, condition_text: str, round_num: int, triggered_by: str
 
 
 def deactivate_rule(store: dict, rule_id: int):
-    """항목 단위 롤백 - 파일 전체를 되돌리지 않고 규칙 하나만 비활성화 가능."""
+    """Per-item rollback - deactivates a single rule without reverting the whole file."""
     for r in store["rules"]:
         if r["id"] == rule_id:
             r["status"] = "inactive"
 
 
 def replace_all_rules(store: dict, new_condition_texts: list, round_num: int, triggered_by: str):
-    """에스컬레이션 모드(구조적 리팩터링): 기존 활성 규칙을 삭제하지 않고
-    status를 'superseded'로 바꿔 감사 추적(provenance)이 남도록 유지하면서,
-    LLM이 재구성한 새 규칙 집합으로 교체."""
+    """Escalation mode (structural refactor): instead of deleting existing active
+    rules, flip their status to 'superseded' to preserve an audit trail
+    (provenance), and replace them with the new rule set the LLM restructured."""
     for r in store["rules"]:
         if r["status"] == "active":
             r["status"] = "superseded"
@@ -90,11 +90,11 @@ def replace_all_rules(store: dict, new_condition_texts: list, round_num: int, tr
         })
 
 
-# ── SAFE 예외 (오탐 완화 방향 - rules와 대칭 구조) ──────────────────────
+# ── SAFE exceptions (false-positive mitigation direction - mirrors the structure of rules) ──────────────────────
 def add_safe_exception(store: dict, example_text: str, round_num: int, triggered_by_fp_type: str) -> int:
-    """add_rule()과 대칭되는 함수. condition_text 대신 example_text를 저장하며,
-    render_system_prompt()에서 SAFE_EXAMPLES 뒤에 덧붙여진다. rules 리스트는
-    건드리지 않고 SAFE로 판단해야 할 사례만 늘린다."""
+    """The counterpart to add_rule(). Stores example_text instead of condition_text,
+    which render_system_prompt() appends after SAFE_EXAMPLES. Doesn't touch the
+    rules list - only grows the set of cases that should be judged SAFE."""
     store.setdefault("safe_exceptions", [])
     example_text = strip_leading_number(example_text)
     new_id = max([e["id"] for e in store["safe_exceptions"]], default=0) + 1
@@ -109,7 +109,7 @@ def add_safe_exception(store: dict, example_text: str, round_num: int, triggered
 
 
 def deactivate_safe_exception(store: dict, exception_id: int):
-    """항목 단위 롤백 - deactivate_rule()과 대칭."""
+    """Per-item rollback - the counterpart to deactivate_rule()."""
     for e in store.get("safe_exceptions", []):
         if e["id"] == exception_id:
             e["status"] = "inactive"
