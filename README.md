@@ -1,5 +1,9 @@
 # Korean Financial Input Guardrail — Auto-Tuning Framework
 
+Official implementation for the paper:
+**"A Regression-Aware Dynamic Guardrail Framework for Korean Financial PII Protection"**
+*(Anonymized Repository for Review)*
+
 A self-tuning guardrail pipeline for financial-domain LLM inputs. It runs a closed
 loop: **red team (attack generation) → measurement (ASR/FPR) → blue team (patch
 proposal) → regression check (McNemar test) → adopt / rollback / escalate.**
