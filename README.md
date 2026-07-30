@@ -45,7 +45,6 @@ same failure type — all without human intervention.
 | `experiments/` | baseline comparisons, held-out eval, caching/latency experiments |
 | `cli.py` | unified entry point for the scripts above |
 | `streamlit_demo.py` | live demo of detection, auto-tuning, and FP mitigation |
-| `README_DEMO.md` | guide for running the demo |
 
 ## Usage
 
@@ -88,7 +87,7 @@ streamlit run streamlit_demo.py
 
 Three views: live detection, live auto-tuning (missed attack → patch
 proposal → re-check), and false-positive mitigation (over-blocked input →
-SAFE exception proposal → re-check). See `README_DEMO.md` for details.
+SAFE exception proposal → re-check).
 
 ## Reproducing from scratch
 
