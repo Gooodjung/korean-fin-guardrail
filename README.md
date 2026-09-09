@@ -32,7 +32,7 @@ auto-tuning loop (1) proposes a local patch, (2) runs a McNemar significance
 test against the accumulated regression corpus, (3) adopts the patch only if
 it improves results with no regression (otherwise rolls back), and (4)
 switches to a structural-refactor mode after two consecutive rollbacks of the
-same failure type — all without human intervention.
+same failure type.
 
 ## Structure
 
@@ -90,6 +90,8 @@ proposal → re-check), and false-positive mitigation (over-blocked input →
 SAFE exception proposal → re-check).
 
 ## Reproducing from scratch
+
+Note: `data/mixed_dataset_v3.json` is a generated experimental artifact and is not included in this repository; use the scripts under `data/` to construct the required dataset before running the commands below.
 
 ```bash
 python cli.py seed-rules
